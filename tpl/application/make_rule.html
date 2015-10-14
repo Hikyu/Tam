@@ -1,0 +1,667 @@
+<div  style="overflow-y:hidden" class="tab-pane fade in active" id="home">
+
+  <!-- Button to trigger modal -->
+
+  <div id="makerule-toolbar">
+    <a data-toggle="modal" href="#makeRule" class="btn btn-primary">新增</a>
+    <button type="button" class="btn btn-success" onclick="changeValid()">生效</button>
+  </div>
+  <table id="table_rule" class="table table-bordered table-hover" data-cache="false" data-toolbar="#makerule-toolbar" data-height="399"></table>
+
+  <div id="makeRule" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+      <h3 id="myModalLabel" align="center">报警规则定制</h3>
+    </div>
+
+    <div class="modal-body">
+      <p> <strong> 应用名:{$appinfo.appname|default:''}</strong> &nbsp;&nbsp; 是否生效:
+        <input type="checkbox" id="valid" name="my-checkbox" checked data-on-color="success" data-size="mini">
+        <script>
+          $("[name='my-checkbox']").bootstrapSwitch();
+        </script>
+      </p>
+      <hr/>
+      <div class="tabbable tabs-left">
+        <ul class="nav nav-tabs">
+          <li class="active"><a href="#lA" data-toggle="tab">报警机制</a></li>
+          <li><a href="#lB" data-toggle="tab">关键字</a></li>
+          <li><a href="#lC" data-toggle="tab">联系人</a></li>
+        </ul>
+        <form id="form_makerule">
+
+          <div class="tab-content">
+            <div class="tab-pane active" id="lA">
+              在
+              <input class="span3" id="makerule_date_start" type="text" readonly> --
+              <input class="span3" id="makerule_date_end" type="text" readonly>时间段内<strong>(不填表示永久生效)</strong>，
+              <script>
+                $('#makerule_date_start').cxCalendar();
+			           $('#makerule_date_end').cxCalendar();
+              </script>
+              在
+              <input type="text" class="input-mini" autocomplete="off" id="period" name="period" placeholder="秒">秒之内，发生
+              <input type="text" class="input-mini" autocomplete="off" id="frequency" name="frequency" placeholder="次">次, 包含关键字(左侧标签),或错误id为
+              <input type="text" class="input-mini" autocomplete="off" id="errorid" name="errorid">的错误，并且持续时间为
+              <input type="text" class="input-mini" autocomplete="off" id="last" name="last" placeholder="分钟">分钟， 则报警。
+              <hr width="100%" style="border:0.5px solid black;" /> 报警间隔
+              <input type="text" class="input-mini" autocomplete="off" id="interval" name="interval" placeholder="分钟">分钟，报警级别
+              <select class="input-mini" id="level" name="level">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+              </select>
+              。
+            </div>
+            <div class="tab-pane" id="lB">
+
+
+              <div class="span12">
+
+                <div class="row-fluid ">
+                  <div class="span8">
+                    <div class="input-append">
+                      <input class="span4" autocomplete="off" id="keyinput" type="text">
+                      <button class="btn" type="button" onclick=clickaddkey()>添加</button>
+                    </div>
+
+                    <br/> 关键字列表(各关键字之间为与的关系)
+                    <br/>
+                    <textarea rows="9" id="keywords" name="keywords" disabled="disabled"></textarea>
+                  </div>
+                  <div class="span3">
+                    <!--<b><font size="2" color="red"> 报警关键字</font></b>-->
+                    <span class="label label-important ">报警关键字</span>
+                    <div style="width:100px;height:230px;overflow-y: scroll;">
+
+                      <table class="table table-bordered table-hover" id="test">
+                        <thead>
+                          <tr>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {foreach $keywords as $value}
+                          <tr>
+                            <td onclick=clickaction(this)>{$value.key|default:''}</td>
+                          </tr>
+                          {/foreach}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  <!--span3-->
+
+                </div>
+              </div>
+              <span class="label label-warning ">提示信息</span>
+              <input type="text" width="100%" autocomplete="off" id="prompt" name="prompt">
+            </div>
+
+            <div class="tab-pane" id="lC" style="overflow-y:hidden">
+              <span class="label label-warning">报警联系人</span>
+              <div class="form-inline" role="form">
+                <br/> 员工号:
+
+                <input id="contactinput" type="text" autocomplete="off" class="input-small">
+                <label class="checkbox inline">
+                  <input type="checkbox" id="checkbox_msg" value="option1" name="msg"> 短信
+                </label>
+                <label class="checkbox inline">
+                  <input type="checkbox" id="checkbox_phone" value="option2" name="phone"> 电话
+                </label>
+                <label class="checkbox inline">
+                  <input type="checkbox" id="checkbox_email" value="option3" name="mail"> E-mail
+                </label>
+                <button class="btn btn-small  btn-success" onclick="addContactToRule()" type="button">添加</button>
+              </div>
+              <br/>
+              <table id="contactTableToRule" data-toggle="table" data-cache="false" data-height="200">
+                <thead>
+                  <th data-field="contactruleid">ID</th>
+                  <th data-field="jobnumber">工号</th>
+                  <th data-field="name">姓名</th>
+                  <th data-field="email">E-mail</th>
+                  <th data-field="phone">电话</th>
+                  <th data-field="msg">短信</th>
+                  <th data-field="operate" data-formatter="Formatter" data-events="Events">操作</th>
+                </thead>
+                <tbody>
+
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <input id="editruleid" name="editruleid" autocomplete="off" type="text" style="display:none;">
+          <input id="reset" name="reset" type="reset" style="display:none;" />
+        </form>
+      </div>
+      <!-- /tabbable -->
+      {literal}
+      <script>
+        //打开对话框时隐藏contactTableToRule id列
+         $('#makeRule').on('show', function(){
+             $('#contactTableToRule').bootstrapTable('hideColumn', 'contactruleid');
+         });
+        //隐藏对话框时清空内容
+        $('#makeRule').on('hide', function(){          
+                $("input[name='reset']").click();
+                document.getElementById("keywords").innerHTML='';
+                
+                var contactTableToRule= $('#contactTableToRule').bootstrapTable('getData');
+                idarr=[];
+                for(var i=0;i<contactTableToRule.length;++i){
+                    idarr.push(contactTableToRule[i].jobnumber);
+                }  
+                $('#contactTableToRule').bootstrapTable('remove', {
+                    field: 'jobnumber',
+                    values: idarr
+                });
+        });
+        //是否生效按钮点击事件
+        function changeValid(){
+           var ifchanges=$('#table_rule').bootstrapTable('getSelections');
+           // alert(JSON.stringify(ifchanges));
+           $.ajax({
+                    cache: false,
+                    type: "POST",
+                    url:"index.php?controller=app&method=changevalids",
+                    data:{"ifchanges":ifchanges},// 规则数组                 
+                    async: false,
+                    error: function(request) {
+                        alert("操作失败");
+                    },
+                    success: function(data) {
+                       // alert(JSON.stringify(data));
+                      alert("操作成功！", getRule());                      
+                    }
+                });
+        }
+      </script>
+      <script>
+        function Formatter(value, row, index) {
+            return [
+                '<a class="remove ml10" href="javascript:void(0)" title="Remove">',
+                   '<i  class="icon-remove"></i>',
+                '</a>'
+            ].join('');
+         }
+         //报警联系人删除事件
+          window.Events = {             
+                'click .remove': function (e, value, row, index) {
+                  // ids=$.map(selects, function (row) {
+                  //       return row.jobnumber;
+                  //   });       
+                  // alert(ids);  
+                  ids=[];
+                  ids.push(row.jobnumber);
+                  $('#contactTableToRule').bootstrapTable('remove', {
+                    field: 'jobnumber',
+                    values: ids
+                });
+                }
+          };    
+          function addContactToRule(){
+            
+             var n=new Object(); 
+             var str =  document.getElementById("contactinput").value;
+            
+             n=checkIfContact(str)    
+            
+             if(n!=null){
+               if(checkIfHasContact(n.jobnumber)){
+                    alert("该报警联系人已经存在!");
+               }else{
+                 var checkbox_phone="false";
+                 var checkbox_msg="false";
+                 var checkbox_email="false"
+                 if($('#checkbox_msg').prop('checked')){
+                   checkbox_msg="true"
+                 }
+                 if($('#checkbox_phone').prop('checked')){
+                   checkbox_phone="true"
+                 }
+                 if($('#checkbox_email').prop('checked')){
+                     checkbox_email="true"
+                 }
+                    var rows = [];
+                    rows.push({
+                      jobnumber:n.jobnumber,
+                      name: n.name,
+                      email:checkbox_email ,
+                      msg: checkbox_msg,
+                      phone:checkbox_phone                           
+                    });
+                    $('#contactTableToRule').bootstrapTable('append', rows)
+               }
+             }else{
+               alert("找不到员工号为 "+str+" 的员工!");
+             }  
+              $("#contactinput").val('');  
+              $("#checkbox_phone").prop("checked", false)
+              $("#checkbox_email").prop("checked", false)
+              $("#checkbox_msg").prop("checked", false)
+          }
+          function checkIfHasContact(str){
+             
+            var s3 = document.getElementById("contactTableToRule"); //获取表格                                                         
+                for(var i=0;i<s3.rows.length;i++){         //获取工号                            
+                      if( str==s3.rows[i].cells[0].innerHTML){    
+                             return true;         
+                      }                            
+            } 
+            return false;   
+          }
+          function checkIfContact(str){
+             
+            var s3 = document.getElementById("mintab"); //获取表格            
+                                                    
+                for(var i=0;i<s3.rows.length;i++){  
+                   //获取工号       
+                    var cells = document.getElementById("mintab").rows.item(1).cells.length;
+                    if(cells>1){
+                    if( str==s3.rows[i].cells[1].innerHTML){  
+                              
+                      var contact=new Object();
+                      contact.name=s3.rows[i].cells[2].innerHTML;
+                      contact.jobnumber=s3.rows[i].cells[1].innerHTML;                   
+                      return contact;         
+                    }   
+                }               
+            } 
+            return null;           
+          }
+      </script>
+      <script>
+        function clickaction(td){
+                         // alert(td.innerText);
+             if(document.getElementById("keywords").innerHTML.length==0){
+                document.getElementById("keywords").innerHTML=td.innerText;
+                 }else{
+                   document.getElementById("keywords").innerHTML+="&&"+td.innerText;
+                }
+                         
+           }
+           function clickaddkey(){
+              var str =  document.getElementById("keyinput").value;
+              if(checkifkey(str)){
+                   if(document.getElementById("keywords").innerHTML.length==0){
+                        document.getElementById("keywords").innerHTML=str;
+                   }else{
+                        document.getElementById("keywords").innerHTML+="&&"+str;
+                   }
+                    
+              }else{
+                alert("找不到该关键字!");                     
+              }
+              document.getElementById("keyinput").value='';
+              
+           }         
+           function checkifkey(str){    
+                // var str =  document.getElementById("contactinput").value;                                                                      
+                 var s3 = document.getElementById("test"); //获取第一个表格                                                         
+                 for(var i=0;i<s3.rows.length;i++){  
+                     for(var j=0;j<s3.rows[i].cells.length;j++){  
+                         if( str==s3.rows[i].cells[j].innerHTML){    
+                             return true;         
+                         }
+                     }  
+                 } 
+                 return false;                      
+           }
+      </script>
+      <script>
+        //获取报警联系人数组
+        function getContactTORule(){    
+           var contact=$('#contactTableToRule').bootstrapTable('getData');
+           var jobs=[];
+           for(var i=0;i<contact.length;++i){
+             var job=new Object();
+             job.contactruleid=contact[i].contactruleid;
+             job.jobnumber=contact[i].jobnumber;
+             var way=[];
+             way.push(contact[i].email);
+             way.push(contact[i].phone);
+             way.push(contact[i].msg);
+             job.contactway=way;
+             jobs.push(job);
+           }   
+           return jobs;                   
+        }
+        //添加报警规则
+        function addRule(){
+           if(!checkRule()){
+              return;
+           }  
+           
+           var valid="false";         
+           if($('#valid').prop('checked')){
+               valid="true"
+           }
+           var ruleid= document.getElementById("editruleid").value;
+           var period= document.getElementById("period").value;
+           var frequency= document.getElementById('frequency').value;
+           var errorid= document.getElementById('errorid').value;
+           var last= document.getElementById('last').value;
+           var interval= document.getElementById('interval').value;
+           var keywords = document.getElementById("keywords").innerHTML;
+           var prompt= document.getElementById('prompt').value;
+           var level = document.getElementById("level").value;
+           var start=document.getElementById("makerule_date_start").value;
+           var end=document.getElementById("makerule_date_end").value;
+                 
+           if(start==''||end==''){
+              start='';end='';  //如果日期填写不完整则都为空
+           }
+           var jobs=getContactTORule();
+           // alert(JSON.stringify(jobs));
+           $.ajax({
+                    cache: false,
+                    type: "POST",
+                    url:"index.php?controller=app&method=ruleadd",
+                    data:{"end":end,"start":start,"id":ruleid,"valid":valid,"period":period,"frequency":frequency,"errorid":errorid,"last":last,"interval":interval,"level":level,"keywords":keywords,"prompt":prompt,"jobs":jobs},// 规则数组                 
+                    async: false,
+                    error: function(request) {
+                        alert("操作失败");
+                    },
+                    success: function(data) {
+                      // alert(JSON.stringify(data));
+                      alert("操作成功！", getRule());                      
+                    }
+                });
+        }
+       //检查规则是否合法
+        function checkRule(){
+           var period= document.getElementById("period").value;
+           var frequency= document.getElementById('frequency').value;
+           var errorid= document.getElementById('errorid').value;
+           var last= document.getElementById('last').value;
+           var interval= document.getElementById('interval').value; 
+           
+           var start=document.getElementById("makerule_date_start").value;
+           var end=document.getElementById("makerule_date_end").value;
+           
+           if(period==''||frequency==''||errorid==''||last==''||interval==''){
+              alert("请将报警机制填写完整!");
+              return false;
+           }
+           
+           if(start!=''&&end!=''){
+                var datestart=new Date(start);
+                var dateend=new Date(end);
+                
+                if(dateend<datestart){
+                   alert("结束日期不能小于开始日期!");
+                }
+           }
+           var keywords = document.getElementById("keywords").innerHTML;
+           if(keywords==''){
+              alert("请填写至少一个关键字!");
+              return false;
+           }
+            
+           var contactTableToRule= $('#contactTableToRule').bootstrapTable('getData');
+           if(contactTableToRule.length==0){
+              alert("请填写至少一个联系人!");
+              return false; 
+           }
+           return true;
+           
+        }
+          //清除对话框内容
+          function clearMakeRule(){               
+                $('#makeRule').modal('hide');
+                $("input[name='reset']").click();
+                document.getElementById("keywords").innerHTML='';
+                
+                var contactTableToRule= $('#contactTableToRule').bootstrapTable('getData');
+                idarr=[];
+                for(var i=0;i<contactTableToRule.length;++i){
+                    idarr.push(contactTableToRule[i].jobnumber);
+                }  
+                $('#contactTableToRule').bootstrapTable('remove', {
+                    field: 'jobnumber',
+                    values: idarr
+                });
+          } 
+          //报警级别颜色
+          function levelFormatter(value) {
+        // 16777215 == ffffff in decimal
+              var level1 = '#7FFFD4';
+              var level2 = '#4EEE94';
+              var level3 = '#6495ED';
+              var level4 = '#FFD700';
+              var level5 = '#FF8247';
+              if(value=='1'){
+                return '<div  style="background: ' + level1 + '">' +                     
+                        value +
+                        '</div>';
+              }
+              if(value=='2'){
+                return '<div  style="background: ' + level2 + '">' +                     
+                        value +
+                        '</div>';
+              }
+              if(value=='3'){
+                return '<div  style="background: ' + level3 + '">' +                     
+                        value +
+                        '</div>';
+              }
+              if(value=='4'){
+                return '<div  style="background: ' + level4 + '">' +                     
+                        value +
+                        '</div>';
+              }
+              if(value=='5'){
+                return '<div  style="background: ' + level5 + '">' +                     
+                        value +
+                        '</div>';
+              }
+              
+            }
+          // 获取规则表
+         
+          function getRule(){
+            clearMakeRule();
+            var xmlhttp;
+            if (window.XMLHttpRequest)
+              {
+                xmlhttp=new XMLHttpRequest();
+              }
+            else
+              {
+                xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+              }
+            xmlhttp.onreadystatechange=function()
+              {
+                  if (xmlhttp.readyState==4 && xmlhttp.status==200)
+                  {
+                    
+                      var str='{"data":'+xmlhttp.responseText+'}'
+                      var obj = eval ("(" + str + ")")
+                      // alert(obj.data);
+                      $('#table_rule').bootstrapTable('destroy');
+                      $('#table_rule').bootstrapTable({
+                          // striped: true,
+                          rowStyle:rowStyle,
+                          pagination: true,
+                          pageSize: 8,
+                          pageList: [10, 25, 50, 100, 200],
+                          search: true,
+                          showColumns: true,                 
+                          minimumCountColumns: 2,
+                          clickToSelect: true,
+                            columns: [{
+                              field: 'state',
+                              checkbox: true
+                            },{
+                              field: 'id',
+                              title: 'ID',
+                              align: 'center'
+                            }, {
+                              field: 'valid',
+                              title: '是否生效',
+                              align: 'center'
+                            },{
+                              field: 'start',
+                              title: '开始时间',
+                              align: 'center'
+                            },{
+                              field: 'end',
+                              title: '结束时间',
+                              align: 'center'
+                            }, {
+                              field: 'period',
+                              title: '报警周期',
+                              align: 'center'
+                            }, {
+                              field: 'frequency',
+                              title: '错误次数',
+                              align: 'center'
+                            },{
+                              field: 'keywords',
+                              title: '报警关键字',
+                              align: 'center'
+                            },{
+                              field: 'errorid',
+                              title: '错误id',
+                              align: 'center'
+                            },{
+                              field: 'last',
+                              title: '持续时间',
+                              align: 'center'
+                             },{
+                              field: 'interval',
+                              title: '间隔时间',
+                              align: 'center'
+                             },{
+                              field: 'level',
+                              title: '报警级别',
+                              formatter:'levelFormatter',
+                              align: 'center'
+                             }, {
+                              field: 'operate',
+                              title: '操作',
+                              align: 'center',
+                              valign: 'middle',
+                              clickToSelect: false,
+                              formatter: ruleoperateFormatter,
+                              events: ruleoperateEvents}
+                            ],
+                            data: obj.data
+                          });
+                         
+                  }                     
+              }
+            xmlhttp.open("POST","index.php?controller=app&method=getrule",true);
+            xmlhttp.send();                
+        }
+        //设置表风格
+        function rowStyle(row, index) {
+            var classes = ['active', 'success', 'info', 'warning', 'danger'];   
+            if (row.valid=='true') {
+                return {
+                    classes: classes[2]
+                };
+            }else{
+              return {
+                    classes: classes[3]
+                };
+            }
+            return {};
+        }
+       function ruleoperateFormatter(value, row, index) {
+       
+        return [
+            '<a class="edit ml10" href="javascript:void(0)" title="Edit">',
+                '<i  class="icon-edit"></i>',
+            '</a>',
+            '<a class="remove ml10" href="javascript:void(0)" title="Remove">',
+                '<i  class="icon-remove"></i>',
+            '</a>',
+          
+        ].join('');
+       }
+       //编辑规则
+        window.ruleoperateEvents = {
+        
+        'click .edit': function (e, value, row, index) {
+          
+           $('#makeRule').modal('show')                
+           document.getElementById("editruleid").value=row.id;  
+           document.getElementById("period").value=row.period;
+           document.getElementById('frequency').value=row.frequency;
+           document.getElementById('errorid').value=row.errorid;
+           document.getElementById('last').value=row.last;
+           document.getElementById('interval').value=row.interval;
+           document.getElementById("keywords").innerHTML=row.keywords;
+           document.getElementById('prompt').value=row.prompt;     
+           document.getElementById("makerule_date_start").value=row.start;
+           document.getElementById("makerule_date_end").value=row.end;   
+           $("#level").val(row.level);
+           
+           $.ajax({
+                    cache: false,
+                    type: "POST",
+                    url:"index.php?controller=app&method=getcontactrule",                 
+                    data:{"ruleid":row.id},
+                    async: false,
+                    error: function(request) {
+                        alert("获取报警联系人信息失败!");
+                    },
+                    success: function(data) {    
+                       var str='{"data":'+data+'}'
+                       var obj = eval ("(" + str + ")")  
+                        // alert(JSON.stringify(data));   
+                      for(var i=0;i<obj.data.length;++i){
+                          // document.getElementById('contactruleid').value=obj.data[i].contactruleid;
+                          var rows = [];
+                          rows.push({ 
+                          contactruleid:obj.data[i].contactruleid,                         
+                          jobnumber:obj.data[i].contactjobnumber,
+                          name: obj.data[i].name,
+                          email:obj.data[i].email ,
+                          msg: obj.data[i].msg,
+                          phone:obj.data[i].phone                           
+                          });
+                          $('#contactTableToRule').bootstrapTable('append', rows)
+                      }            
+                                              
+                    }
+                });          
+        },
+        'click .remove': function (e, value, row, index) {
+           
+            var xmlhttp;
+            if (window.XMLHttpRequest)
+              {
+                xmlhttp=new XMLHttpRequest();
+              }
+            else
+              {
+                xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+              }
+            xmlhttp.onreadystatechange=function()
+              {
+                  if (xmlhttp.readyState==4 && xmlhttp.status==200)
+                  {
+                      getRule();                  
+                  }
+                  
+              }
+              xmlhttp.open("GET","index.php?controller=app&method=ruledel&id="+row.id,true);
+              xmlhttp.send();
+              }
+        };
+      </script>
+      {/literal}
+    </div>
+    <div class="modal-footer">
+      <button class="btn" data-dismiss="modal">关闭</button>
+      <input type="hidden" name="appid" value="{$appinfo.id}">
+      <button class="btn btn-primary" onclick="addRule()">保存</button>
+    </div>
+  </div>
+</div>
